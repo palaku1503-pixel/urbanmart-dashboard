@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanMart | Business Intelligence Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--navy:#13233f;--blue:#315efb;--ink:#172033;--muted:#64748b;--bg:#f4f7fc;--card:#fff;--line:#e6ebf3}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#13233f,#244b87);color:white;padding:34px max(22px,calc((100% - 1180px)/2))}
+header .eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8;font-weight:700}
+h1{margin:8px 0;font-size:clamp(27px,4vw,40px)}header p{margin:0;color:#dbe7ff}
+main{max-width:1180px;margin:26px auto;padding:0 20px 48px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:28px 0 14px}
+h2{font-size:19px;margin:0}.sub{font-size:13px;color:var(--muted);margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:19px;box-shadow:0 5px 18px rgba(24,43,77,.04)}
+.kpi-label{color:var(--muted);font-size:12px;font-weight:650}.kpi{font-size:clamp(21px,2.4vw,29px);font-weight:800;margin-top:9px;letter-spacing:-.6px}.kpi-note{font-size:12px;color:var(--muted);margin-top:5px}
+.charts{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}.chart-card{min-height:320px}.chart-wrap{height:250px;margin-top:18px}
+.insights{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.insight{line-height:1.55;color:#334155;font-size:14px}.insight strong{color:var(--ink)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:18px;border-top:1px solid var(--line)}
+.pill{display:inline-block;background:#eaf0ff;color:#244baf;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:700}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}}
+@media(max-width:540px){.grid,.insights{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">UrbanMart · Data Intelligence</div><h1>Business Performance Dashboard</h1><p>Sales, customer behaviour, delivery performance and product returns</p></header>
+<main>
+<div class="section-head"><div><h2>Business at a glance</h2><div class="sub">Analysis of the supplied UrbanMart transaction dataset · Jan–Sep 2024</div></div><span class="pill">1,200 transactions analysed</span></div>
+<section class="grid" id="kpis"></section>
+<div class="section-head"><div><h2>Revenue performance</h2><div class="sub">Monthly trend and category contribution</div></div></div>
+<section class="charts">
+<div class="card chart-card"><h2>Monthly revenue trend</h2><div class="chart-wrap"><canvas id="monthlyChart"></canvas></div></div>
+<div class="card chart-card"><h2>Revenue by product category</h2><div class="chart-wrap"><canvas id="categoryChart"></canvas></div></div>
+</section>
+<div class="section-head"><div><h2>Customer & operations</h2><div class="sub">Repeat purchase behaviour and return rates</div></div></div>
+<section class="charts">
+<div class="card chart-card"><h2>Repeat purchase rate by segment</h2><div class="chart-wrap"><canvas id="repeatChart"></canvas></div></div>
+<div class="card chart-card"><h2>Return rate by category</h2><div class="chart-wrap"><canvas id="returnChart"></canvas></div></div>
+</section>
+<div class="section-head"><div><h2>Key business insights</h2><div class="sub">Interpretation of the dataset results</div></div></div>
+<section class="insights" id="insights"></section>
+</main>
+<footer>UrbanMart Business Intelligence Dashboard · Prepared from the provided academic dataset</footer>
+<script>
+const d={"totalRevenue": 7297100.5, "transactions": 1200, "topCategory": "Electronics", "topCategoryRevenue": 4215977.1, "repeatCount": 411, "repeatRate": 34.25, "avgRating": 4.07, "avgDelivery": 3.96, "correlation": -0.669, "months": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09"], "monthlyRevenue": [804930.4, 704367.6, 590556.3, 588288.2, 937230.7, 886677.8, 823307.8, 916155.9, 1045585.8], "categories": ["Electronics", "Home & Kitchen", "Apparel", "Sports", "Beauty", "Books"], "categoryRevenue": [4215977.1, 1290975.1, 742218.1, 509314.9, 394750.9, 143864.4], "segments": ["Budget", "Mid-Tier", "Premium"], "repeatRates": [18.64, 37.6, 40.62], "returnCategories": ["Apparel", "Beauty", "Books", "Electronics", "Home & Kitchen", "Sports"], "returnRates": [5.68, 5.88, 8.43, 10.61, 9.05, 6.45], "highestReturnCategory": "Electronics", "highestReturnRate": 10.61, "highestMonth": "2024-09", "lowestMonth": "2024-04"};
+const inr=n=>'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
+const cards=[
+['Total revenue',inr(d.totalRevenue),'Across all recorded transactions'],
+['Total transactions',d.transactions.toLocaleString('en-IN'),'Complete transaction records'],
+['Top product category',d.topCategory,inr(d.topCategoryRevenue)+' revenue'],
+['Repeat purchase records',d.repeatCount.toLocaleString('en-IN'),d.repeatRate+'% of transactions'],
+['Average customer rating',d.avgRating+'/5','Mean recorded rating'],
+['Average delivery time',d.avgDelivery+' days','Mean delivery duration'],
+['Highest revenue month',d.highestMonth,'Highest monthly total'],
+['Lowest revenue month',d.lowestMonth,'Lowest monthly total']
+];
+document.getElementById('kpis').innerHTML=cards.map(c=>`<article class="card"><div class="kpi-label">${c[0]}</div><div class="kpi">${c[1]}</div><div class="kpi-note">${c[2]}</div></article>`).join('');
+const common={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:d.months,datasets:[{data:d.monthlyRevenue,borderColor:'#315efb',backgroundColor:'rgba(49,94,251,.12)',fill:true,tension:.3,pointRadius:4}]},options:{...common,scales:{y:{ticks:{callback:v=>inr(v)}}}}});
+new Chart(document.getElementById('categoryChart'),{type:'bar',data:{labels:d.categories,datasets:[{data:d.categoryRevenue,backgroundColor:'#6c8cff',borderRadius:7}]},options:{...common,indexAxis:'y',scales:{x:{ticks:{callback:v=>inr(v)}}}}});
+new Chart(document.getElementById('repeatChart'),{type:'bar',data:{labels:d.segments,datasets:[{data:d.repeatRates,backgroundColor:'#27a58b',borderRadius:7}]},options:{...common,scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+new Chart(document.getElementById('returnChart'),{type:'bar',data:{labels:d.returnCategories,datasets:[{data:d.returnRates,backgroundColor:'#f29a55',borderRadius:7}]},options:{...common,scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+const notes=[
+`<strong>Revenue:</strong> ${d.highestMonth} was the strongest month, while ${d.lowestMonth} was the weakest month in the period.`,
+`<strong>Product performance:</strong> ${d.topCategory} generated the highest category revenue.`,
+`<strong>Customer retention:</strong> ${d.repeatCount} transaction records were marked as repeat purchases (${d.repeatRate}%). Loyalty rewards and personalised offers can encourage another purchase.`,
+`<strong>Returns:</strong> ${d.highestReturnCategory} had the highest return rate (${d.highestReturnRate}%). Review product descriptions, quality checks and return reasons.`,
+`<strong>Delivery & satisfaction:</strong> Delivery time and customer rating have a correlation of ${d.correlation}. The negative association indicates that longer delivery times tend to accompany lower ratings; correlation does not prove causation.`
+];
+document.getElementById('insights').innerHTML=notes.map(n=>`<article class="card insight">${n}</article>`).join('');
+</script>
+</body></html>
